@@ -16,7 +16,7 @@ func main() {
 	r := registry.Registration{
 		ServiceName:      registry.GradingService,
 		ServiceURL:       serviceAddress,
-		RequiredService:  []registry.ServiceName{registry.LogService},
+		RequiredServices: []registry.ServiceName{registry.LogService},
 		ServiceUpdateURL: serviceAddress + "/services",
 	}
 	ctx, err := service.Start(

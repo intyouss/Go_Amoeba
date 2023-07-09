@@ -23,7 +23,47 @@ func (r *registry) add(reg Registration) error {
 	r.registrations = append(r.registrations, reg)
 	r.mutex.Unlock()
 	err := r.sendRequiredServices(reg)
+	r.notify(patch{
+		Added: []patchEntry{
+			{
+				Name: reg.ServiceName,
+				URL:  reg.ServiceURL,
+			},
+		},
+	})
 	return err
+}
+
+func (r registry) notify(fullPatch patch) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+	for _, reg := range r.registrations {
+		go func(reg Registration) {
+			for _, regService := range reg.RequiredServices {
+				p := patch{Added: []patchEntry{}, Removed: []patchEntry{}}
+				sendUpdate := false
+				for _, added := range fullPatch.Added {
+					if added.Name == regService {
+						p.Added = append(p.Added, added)
+						sendUpdate = true
+					}
+				}
+				for _, removed := range fullPatch.Removed {
+					if removed.Name == regService {
+						p.Removed = append(p.Removed, removed)
+						sendUpdate = true
+					}
+				}
+				if sendUpdate {
+					err := r.sendPatch(p, reg.ServiceUpdateURL)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+				}
+			}
+		}(reg)
+	}
 }
 
 func (r *registry) sendRequiredServices(reg Registration) error {
@@ -31,7 +71,7 @@ func (r *registry) sendRequiredServices(reg Registration) error {
 	defer r.mutex.RUnlock()
 
 	var p patch
-	for _, reqService := range reg.RequiredService {
+	for _, reqService := range reg.RequiredServices {
 		for _, serviceReg := range r.registrations {
 			if reqService == serviceReg.ServiceName {
 				p.Added = append(p.Added, patchEntry{
@@ -63,6 +103,14 @@ func (r *registry) sendPatch(p patch, url string) error {
 func (r *registry) remove(url string) error {
 	for i := range reg.registrations {
 		if reg.registrations[i].ServiceURL == url {
+			r.notify(patch{
+				Removed: []patchEntry{
+					{
+						Name: reg.registrations[i].ServiceName,
+						URL:  reg.registrations[i].ServiceURL,
+					},
+				},
+			})
 			r.mutex.Lock()
 			if i == len(reg.registrations)-1 {
 				reg.registrations = reg.registrations[:i]
