@@ -2,6 +2,7 @@ package main
 
 import (
 	"Go_Amoeba/grades"
+	"Go_Amoeba/log"
 	"Go_Amoeba/registry"
 	"Go_Amoeba/service"
 	"context"
@@ -11,9 +12,12 @@ import (
 
 func main() {
 	host, port := "localhost", "6000"
+	serviceAddress := "http://" + host + ":" + port
 	r := registry.Registration{
-		ServiceName: registry.GradingService,
-		ServiceURL:  "http://" + host + ":" + port,
+		ServiceName:      registry.GradingService,
+		ServiceURL:       serviceAddress,
+		RequiredService:  []registry.ServiceName{registry.LogService},
+		ServiceUpdateURL: serviceAddress + "/services",
 	}
 	ctx, err := service.Start(
 		context.Background(),
@@ -24,6 +28,11 @@ func main() {
 	)
 	if err != nil {
 		stdlog.Fatalln(err)
+	}
+
+	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
+		fmt.Printf("Logging service found at: %s\n", logProvider)
+		log.SetClientLogger(logProvider, r.ServiceName)
 	}
 	<-ctx.Done()
 

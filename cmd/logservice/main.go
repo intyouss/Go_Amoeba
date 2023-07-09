@@ -1,9 +1,9 @@
 package main
 
 import (
-	"LabUser/log"
-	"LabUser/registry"
-	"LabUser/service"
+	"Go_Amoeba/log"
+	"Go_Amoeba/registry"
+	"Go_Amoeba/service"
 	"context"
 	"fmt"
 	stdlog "log"
@@ -12,9 +12,12 @@ import (
 func main() {
 	log.Run("./distributed.log")
 	host, port := "localhost", "4000"
+	serviceAddress := "http://" + host + ":" + port
 	r := registry.Registration{
-		ServiceName: registry.LogService,
-		ServiceURL:  "http://" + host + ":" + port,
+		ServiceName:      registry.LogService,
+		ServiceURL:       serviceAddress,
+		RequiredService:  make([]registry.ServiceName, 0),
+		ServiceUpdateURL: serviceAddress + "/services",
 	}
 	ctx, err := service.Start(
 		context.Background(),
