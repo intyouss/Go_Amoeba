@@ -1,1 +1,11 @@
 go2023/07/08 16:25:34 这是一个log记录服务
+[go] - 2023/07/09 19:12:05 [GradingService] - http: Server closed
+
+[go] - 2023/07/09 19:12:05 [GradingService] - failed to remove service. remove service responded with code 500
+
+[go] - 2023/07/09 19:21:42 [Portald] - http: Server closed
+
+[go] - 2023/07/09 20:56:42 [GradingService] - Delete "http://localhost:3000/services": dial tcp 127.0.0.1:3000: connect: connection refused
+
+[go] - 2023/07/09 21:02:57 [Portald] - Delete "http://localhost:3000/services": dial tcp 127.0.0.1:3000: connect: connection refused
+

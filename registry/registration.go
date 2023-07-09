@@ -13,6 +13,7 @@ type ServiceName string
 const (
 	LogService     = ServiceName("LogService")
 	GradingService = ServiceName("GradingService")
+	PortalService  = ServiceName("Portald")
 )
 
 type patchEntry struct {

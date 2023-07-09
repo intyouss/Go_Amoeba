@@ -17,7 +17,9 @@ func RegisterService(r Registration) error {
 		return err
 	}
 	http.HandleFunc(heartbeatURL.Path, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		if r.Method == http.MethodGet {
+			w.WriteHeader(http.StatusOK)
+		}
 	})
 	serviceUpdateURL, err := url.Parse(r.ServiceUpdateURL)
 	if err != nil {
