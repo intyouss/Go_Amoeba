@@ -75,7 +75,10 @@ func (sh studentsHandler) renderStudents(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return
 	}
-	rootTemplate.Lookup("students.html").Execute(w, s)
+	err = rootTemplate.Lookup("students.html").Execute(w, s)
+	if err != nil {
+		return
+	}
 }
 
 func (sh studentsHandler) renderStudent(w http.ResponseWriter, r *http.Request, id int) {
@@ -103,7 +106,10 @@ func (sh studentsHandler) renderStudent(w http.ResponseWriter, r *http.Request, 
 	if err != nil {
 		return
 	}
-	rootTemplate.Lookup("student.html").Execute(w, s)
+	err = rootTemplate.Lookup("student.html").Execute(w, s)
+	if err != nil {
+		return
+	}
 }
 
 func (sh studentsHandler) renderGrades(w http.ResponseWriter, r *http.Request, id int) {

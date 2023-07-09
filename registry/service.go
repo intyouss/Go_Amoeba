@@ -116,14 +116,20 @@ func (r *registry) heartbeat(freq time.Duration) {
 					} else if res.StatusCode == http.StatusOK {
 						log.Printf("Heartbeat check passed for %v", reg.ServiceName)
 						if !success {
-							r.add(reg)
+							err = r.add(reg)
+							if err != nil {
+								log.Println(err)
+							}
 						}
 						break
 					}
 					log.Printf("Heartbeat check failed for %v", reg.ServiceName)
 					if success {
 						success = false
-						r.remove(reg.ServiceURL)
+						err = r.remove(reg.ServiceURL)
+						if err != nil {
+							log.Println(err)
+						}
 					}
 					time.Sleep(1 * time.Second)
 				}
