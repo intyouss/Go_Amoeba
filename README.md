@@ -1,2 +1,2 @@
-# LabUser
-基于GitLab体系实现User微服务
+# Go_Amoeba
+基于Go实现分布式服务系统
