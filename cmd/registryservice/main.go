@@ -1,7 +1,7 @@
 package main
 
 import (
-	"LabUser/registry"
+	"Go_Amoeba/registry"
 	"context"
 	"fmt"
 	"log"
