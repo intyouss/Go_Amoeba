@@ -1,9 +1,9 @@
 package main
 
 import (
-	"LabUser/grades"
-	"LabUser/registry"
-	"LabUser/service"
+	"Go_Amoeba/grades"
+	"Go_Amoeba/registry"
+	"Go_Amoeba/service"
 	"context"
 	"fmt"
 	stdlog "log"
