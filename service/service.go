@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+// Start 服务启动方法
 func Start(ctx context.Context, host, port string, reg registry.Registration,
 	registerHandlersFunc func()) (context.Context, error) {
 	registerHandlersFunc()

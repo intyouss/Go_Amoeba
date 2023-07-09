@@ -14,16 +14,18 @@ import (
 const ServerPort = ":3000"
 const ServicesURL = "http://localhost" + ServerPort + "/services"
 
+// registry 已注册服务组
 type registry struct {
-	registrations []Registration
-	mutex         *sync.RWMutex
+	registrations []Registration // 服务组
+	mutex         *sync.RWMutex  // 读写锁
 }
 
+// add 服务组添加服务
 func (r *registry) add(reg Registration) error {
 	r.mutex.Lock()
 	r.registrations = append(r.registrations, reg)
 	r.mutex.Unlock()
-	err := r.sendRequiredServices(reg)
+	err := r.sendRequiredServices(reg) //向注册系统发送所需依赖项
 	r.notify(patch{
 		Added: []patchEntry{
 			{
@@ -35,6 +37,7 @@ func (r *registry) add(reg Registration) error {
 	return err
 }
 
+// notify 被动通知方法，当服务依赖项启动或关闭时通知服务
 func (r registry) notify(fullPatch patch) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
