@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		stdlog.Fatal(err)
 	}
-	host, port := "localhost", "5000"
+	host, port := "localhost", "15000"
 	serviceAddress := "http://" + host + ":" + port
 	r := registry.Registration{
 		ServiceName: registry.PortalService,

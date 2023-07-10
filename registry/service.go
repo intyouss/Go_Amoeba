@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const ServerPort = ":3000"
+const ServerPort = ":10000"
 const ServicesURL = "http://localhost" + ServerPort + "/services"
 
 // registry 已注册服务组
@@ -20,12 +20,12 @@ type registry struct {
 	mutex         *sync.RWMutex  // 读写锁
 }
 
-// add 服务组添加服务
+// add 注册服务组添加服务
 func (r *registry) add(reg Registration) error {
 	r.mutex.Lock()
 	r.registrations = append(r.registrations, reg)
 	r.mutex.Unlock()
-	err := r.sendRequiredServices(reg) //向注册系统发送所需依赖项
+	err := r.sendRequiredServices(reg)
 	r.notify(patch{
 		Added: []patchEntry{
 			{
@@ -37,21 +37,47 @@ func (r *registry) add(reg Registration) error {
 	return err
 }
 
-// notify 被动通知方法，当服务依赖项启动或关闭时通知服务
+// remove 注册服务组删除服务
+func (r *registry) remove(url string) error {
+	for i := range reg.registrations {
+		if reg.registrations[i].ServiceURL == url {
+			// 被动通知删除
+			r.notify(patch{
+				Removed: []patchEntry{
+					{
+						Name: reg.registrations[i].ServiceName,
+						URL:  reg.registrations[i].ServiceURL,
+					},
+				},
+			})
+			r.mutex.Lock()
+			reg.registrations = append(reg.registrations[:i], reg.registrations[i+1:]...)
+			r.mutex.Unlock()
+			return nil
+		}
+	}
+	return fmt.Errorf("service at url %s not found", url)
+}
+
+// notify 被动通知，当服务注册时通知依赖此服务的服务
 func (r registry) notify(fullPatch patch) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
+	// 访问所有被注册服务
 	for _, reg := range r.registrations {
 		go func(reg Registration) {
+			// 访问被注册服务依赖项
 			for _, regService := range reg.RequiredServices {
 				p := patch{Added: []patchEntry{}, Removed: []patchEntry{}}
 				sendUpdate := false
+				// 访问更新列表添加字段
 				for _, added := range fullPatch.Added {
 					if added.Name == regService {
 						p.Added = append(p.Added, added)
 						sendUpdate = true
 					}
 				}
+				// 访问更新列表删除字段
 				for _, removed := range fullPatch.Removed {
 					if removed.Name == regService {
 						p.Removed = append(p.Removed, removed)
@@ -59,6 +85,7 @@ func (r registry) notify(fullPatch patch) {
 					}
 				}
 				if sendUpdate {
+					// 访问更新地址
 					err := r.sendPatch(p, reg.ServiceUpdateURL)
 					if err != nil {
 						log.Println(err)
@@ -70,13 +97,16 @@ func (r registry) notify(fullPatch patch) {
 	}
 }
 
+// sendRequiredServices 主动查询, 更新此服务的依赖项注册信息
 func (r *registry) sendRequiredServices(reg Registration) error {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
 	var p patch
+	// 访问服务依赖项
 	for _, reqService := range reg.RequiredServices {
 		for _, serviceReg := range r.registrations {
+			// 判断依赖项是否已注册
 			if reqService == serviceReg.ServiceName {
 				p.Added = append(p.Added, patchEntry{
 					Name: serviceReg.ServiceName,
@@ -92,6 +122,7 @@ func (r *registry) sendRequiredServices(reg Registration) error {
 	return nil
 }
 
+// sendPatch 发送 patch 更新信息
 func (r *registry) sendPatch(p patch, url string) error {
 	d, err := json.Marshal(p)
 	if err != nil {
@@ -104,6 +135,7 @@ func (r *registry) sendPatch(p patch, url string) error {
 	return nil
 }
 
+// heartbeat 心跳检测
 func (r *registry) heartbeat(freq time.Duration) {
 	for {
 		var wg sync.WaitGroup
@@ -145,43 +177,23 @@ func (r *registry) heartbeat(freq time.Duration) {
 
 var once sync.Once
 
-func SetupRegistryService() {
+// MonitorHeartbeat 监测心跳 once.Do 限制启动一次
+func MonitorHeartbeat() {
 	once.Do(func() {
 		go reg.heartbeat(4 * time.Second)
 	})
 }
 
-func (r *registry) remove(url string) error {
-	for i := range reg.registrations {
-		if reg.registrations[i].ServiceURL == url {
-			r.notify(patch{
-				Removed: []patchEntry{
-					{
-						Name: reg.registrations[i].ServiceName,
-						URL:  reg.registrations[i].ServiceURL,
-					},
-				},
-			})
-			r.mutex.Lock()
-			if i == len(reg.registrations)-1 {
-				reg.registrations = reg.registrations[:i]
-			} else {
-				reg.registrations = append(reg.registrations[:i], reg.registrations[i+1:]...)
-			}
-			r.mutex.Unlock()
-			return nil
-		}
-	}
-	return fmt.Errorf("service at url %s not found", url)
-}
-
+// registry 服务组初始化
 var reg = registry{
 	registrations: make([]Registration, 0),
 	mutex:         new(sync.RWMutex),
 }
 
+// RegistryService 注册服务
 type RegistryService struct{}
 
+// ServeHTTP 方法, 实现 Handler
 func (s RegistryService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request received")
 	switch r.Method {

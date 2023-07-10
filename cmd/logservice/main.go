@@ -11,7 +11,7 @@ import (
 
 func main() {
 	log.Run("./distributed.log")
-	host, port := "localhost", "4000"
+	host, port := "localhost", "14000"
 	serviceAddress := "http://" + host + ":" + port
 	r := registry.Registration{
 		ServiceName:      registry.LogService,

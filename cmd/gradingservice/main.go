@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	host, port := "localhost", "6000"
+	host, port := "localhost", "16000"
 	serviceAddress := "http://" + host + ":" + port
 	r := registry.Registration{
 		ServiceName:      registry.GradingService,

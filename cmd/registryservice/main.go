@@ -9,7 +9,8 @@ import (
 )
 
 func main() {
-	registry.SetupRegistryService()
+	registry.MonitorHeartbeat()
+	// 服务注册地址
 	http.Handle("/services", &registry.RegistryService{})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

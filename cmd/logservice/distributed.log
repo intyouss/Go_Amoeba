@@ -9,3 +9,7 @@ go2023/07/08 16:25:34 这是一个log记录服务
 
 [go] - 2023/07/09 21:02:57 [Portald] - Delete "http://localhost:3000/services": dial tcp 127.0.0.1:3000: connect: connection refused
 
+[go] - 2023/07/10 09:45:59 [GradingService] - unexpected newline
+
+[go] - 2023/07/10 09:45:59 [GradingService] - http: Server closed
+

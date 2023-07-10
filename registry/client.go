@@ -100,11 +100,7 @@ func (p *providers) Update(pat patch) {
 		if providerURLs, ok := p.services[patchEntry.Name]; ok {
 			for i := range providerURLs {
 				if providerURLs[i] == patchEntry.URL {
-					if i == len(providerURLs)-1 {
-						p.services[patchEntry.Name] = providerURLs[:i]
-					} else {
-						p.services[patchEntry.Name] = append(providerURLs[:i], providerURLs[i+1:]...)
-					}
+					p.services[patchEntry.Name] = append(providerURLs[:i], providerURLs[i+1:]...)
 					break
 				}
 			}
